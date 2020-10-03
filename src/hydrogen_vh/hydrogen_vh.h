@@ -97,17 +97,19 @@ namespace hydrogen_vh {
 
         // #region メンバ変数
 
+public:
+        //! A public member variable (constant expression).
+        /*!
+            出力ファイル名
+        */
+        static auto constexpr RESULT_FILENAME = "result.csv";
+
+private:
         //! A private member variable (constant expression).
         /*!
             Gauss-Legendre積分の分点
         */
         static auto constexpr INTEGTABLENUM = 100;
-
-        //! A private member variable (constant expression).
-        /*!
-            Gauss-Legendre積分の分点
-        */
-        static auto constexpr RESULT_FILENAME = "result.csv";
 
         //! A private member variable.
         /*!

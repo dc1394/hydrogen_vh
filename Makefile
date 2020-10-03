@@ -1,12 +1,12 @@
 #
 # プログラム名
 #
-PROG = hydrogen_lda
+PROG = hydrogen_vh
 
 #
 # ソースコードが存在する相対パス
 #
-VPATH = src/alglib/src src/hydrogen_lda src/hydrogen_lda/gausslegendre
+VPATH = src/alglib/src src/hydrogen_fem src/hydrogen_vh src/hydrogen_vh/gausslegendre
 
 #
 # コンパイル対象のソースファイル群（カレントディレクトリ以下の*.cppファイル）
@@ -31,17 +31,17 @@ DEPS = $(OBJS:.o=.d)
 #
 # C++コンパイラの指定
 #
-CXX = clang++
+CXX = g++
 
 #
 # C++コンパイラに与える、（最適化等の）オプション
 #
-CXXFLAGS = -Wall -Wextra -O3 -std=c++17 -mtune=native -march=native
+CXXFLAGS = -Wall -Wextra -O3 -std=c++17 -mtune=native -march=native -fopenmp -m64
 
 #
 # リンク対象に含めるライブラリの指定
 #
-LDFLAGS = -lm -ldl -lxc
+LDFLAGS = -L${MKLROOT}/lib/intel64 -Wl,--no-as-needed -lmkl_intel_lp64 -lmkl_intel_thread -lmkl_core -liomp5 -lpthread -lm -ldl
 
 #
 # makeの動作

@@ -17,12 +17,22 @@
 */
 
 #include "hydrogen_vh.h"
+#include <chrono>           // for std::chrono
+#include <iostream>         // for std::cout
+#include <boost/format.hpp> // for boost::format
 
 int main()
 {
-    hydrogen_vh::Hydrogen_Vh hl;
-    hl.do_run();
-    hl.save_result();
+    using namespace std::chrono;
+    
+    auto const start = system_clock::now();
+    hydrogen_vh::Hydrogen_Vh hv;
+    hv.do_run();
+    auto const end = system_clock::now();
+    std::cout << boost::format("計算が終わりました．\n計算時間 = %.14f（秒）\n") % duration_cast< duration<double> >(end - start).count();
+
+    hv.save_result();
+    std::cout << "計算結果を" << hydrogen_vh::Hydrogen_Vh::RESULT_FILENAME << "に書き込みました．" << std::endl;
 
     return 0;
 }

@@ -76,10 +76,10 @@ namespace hydrogen_vh {
         std::unique_ptr<FILE, decltype(&std::fclose)> fp(std::fopen(Hydrogen_Vh::RESULT_FILENAME, "w"), std::fclose);
 
         auto const dr = (Hydrogen_FEM::R_MAX - Hydrogen_FEM::R_MIN) / static_cast<double>(Hydrogen_FEM::ELE_TOTAL);
-        for (auto i = 0; i <= Hydrogen_FEM::ELE_TOTAL; i++) {
+        for (auto i = 1; i <= Hydrogen_FEM::ELE_TOTAL; i++) {
             auto const r = static_cast<double>(i) * dr;
             // 厳密な結果と比較
-            std::fprintf(fp.get(), "%.14f, %.14f, %.14f\n", r, u_[i], - (r + 1.0) * exp(-2.0 * r) + 1.0);
+            std::fprintf(fp.get(), "%.14f, %.14f, %.14f\n", r, u_[i] / r, - (1.0 + 1.0 / r) * exp(-2.0 * r) + 1.0 / r);
         }
     }
 
@@ -106,10 +106,10 @@ namespace hydrogen_vh {
 
     void Hydrogen_Vh::make_data()
     {
-        std::valarray<double> node_x_glo(Hydrogen_FEM::NODE_TOTAL);
+        std::valarray<double> node_r_glo(Hydrogen_FEM::NODE_TOTAL);
         auto const dr = (Hydrogen_FEM::R_MAX - Hydrogen_FEM::R_MIN) / static_cast<double>(Hydrogen_FEM::ELE_TOTAL);
         for (auto i = 0; i <= Hydrogen_FEM::ELE_TOTAL; i++) {
-            node_x_glo[i] = Hydrogen_FEM::R_MIN + static_cast<double>(i) * dr;
+            node_r_glo[i] = Hydrogen_FEM::R_MIN + static_cast<double>(i) * dr;
         }
 
         for (auto e = 0; e < Hydrogen_FEM::ELE_TOTAL; e++) {
@@ -119,7 +119,7 @@ namespace hydrogen_vh {
 
         for (auto e = 0; e < Hydrogen_FEM::ELE_TOTAL; e++) {
             for (auto i = 0; i < 2; i++) {
-                node_r_ele_[e][i] = node_x_glo[node_num_seg_[e][i]];
+                node_r_ele_[e][i] = node_r_glo[node_num_seg_[e][i]];
             }
         }
     }
