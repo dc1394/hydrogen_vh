@@ -77,12 +77,6 @@ namespace hydrogen_vh {
 
         //! A private member function.
         /*!
-            各種データを生成する
-        */
-        void make_data();
-
-        //! A private member function.
-        /*!
             要素行列とLocal節点ベクトルの各成分を計算する
         */
         void make_element_matrix_and_vector();
@@ -125,12 +119,6 @@ private:
 
         //! A private member variable.
         /*!
-            各要素の長さ
-        */
-        std::valarray<double> length_;
-
-        //! A private member variable.
-        /*!
             左辺の係数行列
         */
         boost::multi_array<double, 3> mat_A_ele_;
@@ -143,27 +131,15 @@ private:
 
         //! A private member variable.
         /*!
-            各要素のGlobal節点番号
+            連立方程式の解
         */
-        boost::multi_array<std::int32_t, 2> node_num_seg_;
-
-        //! A private member variable.
-        /*!
-            各要素のLocal節点のr座標
-        */
-        boost::multi_array<double, 2> node_r_ele_;
+        Eigen::VectorXd u_;
 
         //! A private member variable.
         /*!
             右辺のLocal節点ベクトル
         */
         boost::multi_array<double, 2> vec_b_ele_;
-
-        //! A private member variable.
-        /*!
-            連立方程式の解
-        */
-        Eigen::VectorXd u_;
 
         //! A private member variable.
         /*!

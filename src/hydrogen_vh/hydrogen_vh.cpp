@@ -23,7 +23,6 @@
 #include <cstdio>                       // for FILE, std::fclose, std::fopen, std::fprintf
 #include <memory>                       // for std::unique_ptr
 #include <boost/assert.hpp>             // for boost::assert        
-#include <boost/format.hpp>             // for boost::format
 #include <Eigen/SparseLU>               // for Eigen::SparseLU
 
 namespace hydrogen_vh {
@@ -33,13 +32,10 @@ namespace hydrogen_vh {
 
     Hydrogen_Vh::Hydrogen_Vh()
         :   gl_(INTEGTABLENUM),
-            length_(Hydrogen_FEM::ELE_TOTAL),
             mat_A_ele_(boost::extents[Hydrogen_FEM::ELE_TOTAL][2][2]),
             mat_A_glo_(Hydrogen_FEM::NODE_TOTAL, Hydrogen_FEM::NODE_TOTAL),
-            node_num_seg_(boost::extents[Hydrogen_FEM::ELE_TOTAL][2]),
-            node_r_ele_(boost::extents[Hydrogen_FEM::ELE_TOTAL][2]),
-            vec_b_ele_(boost::extents[Hydrogen_FEM::ELE_TOTAL][2]),
             u_(Eigen::VectorXd::Zero(Hydrogen_FEM::NODE_TOTAL)),
+            vec_b_ele_(boost::extents[Hydrogen_FEM::ELE_TOTAL][2]),
             vec_b_glo_(Eigen::VectorXd::Zero(Hydrogen_FEM::NODE_TOTAL))
     {
         hfem_.do_run();
@@ -51,9 +47,6 @@ namespace hydrogen_vh {
 
     void Hydrogen_Vh::do_run()
     {
-        // データの生成
-        make_data();
-
         // 要素行列とLocal節点ベクトルを生成
         make_element_matrix_and_vector();
 
@@ -104,52 +97,27 @@ namespace hydrogen_vh {
         mat_A_glo_.coeffRef(Hydrogen_FEM::NODE_TOTAL - 1, Hydrogen_FEM::NODE_TOTAL - 2) = 0.0;
     }
 
-    void Hydrogen_Vh::make_data()
-    {
-        std::valarray<double> node_r_glo(Hydrogen_FEM::NODE_TOTAL);
-        auto const dr = (Hydrogen_FEM::R_MAX - Hydrogen_FEM::R_MIN) / static_cast<double>(Hydrogen_FEM::ELE_TOTAL);
-        for (auto i = 0; i <= Hydrogen_FEM::ELE_TOTAL; i++) {
-            node_r_glo[i] = Hydrogen_FEM::R_MIN + static_cast<double>(i) * dr;
-        }
-
-        for (auto e = 0; e < Hydrogen_FEM::ELE_TOTAL; e++) {
-            node_num_seg_[e][0] = e;
-            node_num_seg_[e][1] = e + 1;
-        }
-
-        for (auto e = 0; e < Hydrogen_FEM::ELE_TOTAL; e++) {
-            for (auto i = 0; i < 2; i++) {
-                node_r_ele_[e][i] = node_r_glo[node_num_seg_[e][i]];
-            }
-        }
-    }
-
     void Hydrogen_Vh::make_element_matrix_and_vector()
     {
-        // 各線分要素の長さを計算
-        for (auto e = 0; e < Hydrogen_FEM::ELE_TOTAL; e++) {
-            length_[e] = std::fabs(node_r_ele_[e][1] - node_r_ele_[e][0]);
-        }
-
         // 要素行列とLocal節点ベクトルの各成分を計算
         for (auto e = 0; e < Hydrogen_FEM::ELE_TOTAL; e++) {
             for (auto i = 0; i < 2; i++) {
                 for (auto j = 0; j < 2; j++) {
-                    mat_A_ele_[e][i][j] = (std::pow(-1, i + 1) * std::pow((-1), (j + 1)) / length_[e]);
+                    mat_A_ele_[e][i][j] = (std::pow(-1, i + 1) * std::pow((-1), (j + 1)) / hfem_.Length()[e]);
                 }
 
                 switch (i)
                 {
                 case 0:
-                    vec_b_ele_[e][i] = -gl_.qgauss(myfunctional::make_functional([this, e](double r) { return -r * hfem_.rho(r) * (node_r_ele_[e][1] - r) / length_[e]; }),
-                        node_r_ele_[e][0],
-                        node_r_ele_[e][1]);
+                    vec_b_ele_[e][i] = -gl_.qgauss(myfunctional::make_functional([this, e](double r) { return -r * hfem_.rho(r) * (hfem_.Node_r_ele()[e][1] - r) / hfem_.Length()[e]; }),
+                        hfem_.Node_r_ele()[e][0],
+                        hfem_.Node_r_ele()[e][1]);
                     break;
 
                 case 1:
-                    vec_b_ele_[e][i] = -gl_.qgauss(myfunctional::make_functional([this, e](double r) { return -r * hfem_.rho(r) * (r - node_r_ele_[e][0]) / length_[e]; }),
-                        node_r_ele_[e][0],
-                        node_r_ele_[e][1]);
+                    vec_b_ele_[e][i] = -gl_.qgauss(myfunctional::make_functional([this, e](double r) { return -r * hfem_.rho(r) * (r - hfem_.Node_r_ele()[e][0]) / hfem_.Length()[e]; }),
+                        hfem_.Node_r_ele()[e][0],
+                        hfem_.Node_r_ele()[e][1]);
 
                     break;
 
@@ -167,9 +135,9 @@ namespace hydrogen_vh {
         for (auto e = 0; e < Hydrogen_FEM::ELE_TOTAL; e++) {
             for (auto i = 0; i < 2; i++) {
                 for (auto j = 0; j < 2; j++) {
-                    mat_A_glo_.coeffRef(node_num_seg_[e][i], node_num_seg_[e][j]) = mat_A_glo_.coeff(node_num_seg_[e][i], node_num_seg_[e][j]) + mat_A_ele_[e][i][j];
+                    mat_A_glo_.coeffRef(hfem_.Node_num_seg()[e][i], hfem_.Node_num_seg()[e][j]) = mat_A_glo_.coeff(hfem_.Node_num_seg()[e][i], hfem_.Node_num_seg()[e][j]) + mat_A_ele_[e][i][j];
                 }
-                vec_b_glo_(node_num_seg_[e][i]) += vec_b_ele_[e][i];
+                vec_b_glo_(hfem_.Node_num_seg()[e][i]) += vec_b_ele_[e][i];
             }
         }
     }

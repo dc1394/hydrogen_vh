@@ -10,6 +10,7 @@
 
 #pragma once
 
+#include "../utility/property.h"
 #include <cstdint>                  // for std::int32_t
 #include <valarray>                 // for std::valarray
 #include <Eigen/Core>               // for Eigen::MatrixXd
@@ -35,6 +36,8 @@ namespace hydrogen_fem {
             デストラクタ
         */
         ~Hydrogen_FEM() = default;
+
+        // #endregion コンストラクタ・デストラクタ
 
         // #region publicメンバ関数
 
@@ -108,6 +111,32 @@ namespace hydrogen_fem {
 
         // #endregion privateメンバ関数
 
+        // #region プロパティ
+
+    public:
+        //! A property.
+        /*!
+            各要素の長さを返す
+            \return 各要素の長さ
+        */
+        utility::Property<std::valarray<double> const &> const Length;
+        
+        //! A property.
+        /*!
+            各要素のGlobal節点番号を返す
+            \return 各要素のGlobal節点番号
+        */
+        utility::Property<boost::multi_array<std::int32_t, 2> const &> const Node_num_seg;
+
+        //! A property.
+        /*!
+            各要素のLocal節点のr座標を返す
+            \return 各要素のLocal節点のr座標
+        */
+        utility::Property<boost::multi_array<double, 2> const &> const Node_r_ele;
+
+        // #endregion プロパティ
+
         // #region メンバ変数
 
     public:
@@ -164,7 +193,7 @@ namespace hydrogen_fem {
         /*!
             各要素のGlobal節点番号
         */
-        boost::multi_array<std::int32_t, 2> nod_num_seg_;
+        boost::multi_array<std::int32_t, 2> node_num_seg_;
 
         //! A private member variable.
         /*!

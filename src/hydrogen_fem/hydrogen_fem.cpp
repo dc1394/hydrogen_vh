@@ -15,11 +15,14 @@ namespace hydrogen_fem {
     // #region コンストラクタ
 
     Hydrogen_FEM::Hydrogen_FEM()
-        :   hg_(Eigen::MatrixXd::Zero(NODE_TOTAL, NODE_TOTAL)),
+        :   Length([this] { return std::cref(length_); }, nullptr),
+            Node_num_seg([this] { return std::cref(node_num_seg_); }, nullptr),
+            Node_r_ele([this] { return std::cref(node_r_ele_); }, nullptr),
+            hg_(Eigen::MatrixXd::Zero(NODE_TOTAL, NODE_TOTAL)),
             length_(ELE_TOTAL),
             mat_A_ele_(boost::extents[ELE_TOTAL][2][2]),
             mat_B_ele_(boost::extents[ELE_TOTAL][2][2]),
-            nod_num_seg_(boost::extents[ELE_TOTAL][2]),
+            node_num_seg_(boost::extents[ELE_TOTAL][2]),
             node_r_ele_(boost::extents[ELE_TOTAL][2]),
             node_r_glo_(NODE_TOTAL),
             ug_(Eigen::MatrixXd::Zero(NODE_TOTAL, NODE_TOTAL))
@@ -43,9 +46,6 @@ namespace hydrogen_fem {
                 
         // 一般化固有値問題を解く
         Eigen::GeneralizedSelfAdjointEigenSolver<Eigen::MatrixXd> es(hg_, ug_);
-
-        // エネルギー固有値Eを取得
-        auto const e = es.eigenvalues()[0];
 
         // 固有ベクトル（波動関数）を取得
         phi_ = es.eigenvectors().col(0);
@@ -182,13 +182,13 @@ namespace hydrogen_fem {
         }
 
         for (auto e = 0; e < ELE_TOTAL; e++) {
-            nod_num_seg_[e][0] = e;
-            nod_num_seg_[e][1] = e + 1;
+            node_num_seg_[e][0] = e;
+            node_num_seg_[e][1] = e + 1;
         }
         
         for (auto e = 0; e < ELE_TOTAL; e++) {
             for (auto i = 0; i < 2; i++) {
-                node_r_ele_[e][i] = node_r_glo_[nod_num_seg_[e][i]];
+                node_r_ele_[e][i] = node_r_glo_[node_num_seg_[e][i]];
             }
         }
     }
@@ -198,8 +198,8 @@ namespace hydrogen_fem {
         for (auto e = 0; e < ELE_TOTAL; e++) {
             for (auto i = 0; i < 2; i++) {
                 for (auto j = 0; j < 2; j++) {
-                    hg_(nod_num_seg_[e][i], nod_num_seg_[e][j]) += mat_A_ele_[e][i][j];
-                    ug_(nod_num_seg_[e][i], nod_num_seg_[e][j]) += mat_B_ele_[e][i][j];
+                    hg_(node_num_seg_[e][i], node_num_seg_[e][j]) += mat_A_ele_[e][i][j];
+                    ug_(node_num_seg_[e][i], node_num_seg_[e][j]) += mat_B_ele_[e][i][j];
                 }
             }
         }
