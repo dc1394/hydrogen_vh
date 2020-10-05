@@ -71,7 +71,7 @@ namespace hydrogen_vh {
     private:
         //! A private member function.
         /*!
-            境界条件を設定する
+            境界条件処理を行う
         */
         void boundary_conditions();
 
@@ -104,6 +104,18 @@ private:
             Gauss-Legendre積分の分点
         */
         static auto constexpr INTEGTABLENUM = 100;
+
+        //! A private member variable (constant expression).
+        /*!
+            節点数
+        */
+        static auto constexpr NODE_TOTAL = hydrogen_fem::Hydrogen_FEM::NODE_TOTAL - 1;
+
+        //! A private member variable (constant expression).
+        /*!
+            要素数
+        */
+        static auto constexpr ELE_TOTAL = NODE_TOTAL - 1;
 
         //! A private member variable.
         /*!

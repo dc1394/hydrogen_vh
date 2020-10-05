@@ -32,11 +32,11 @@ namespace hydrogen_vh {
 
     Hydrogen_Vh::Hydrogen_Vh()
         :   gl_(INTEGTABLENUM),
-            mat_A_ele_(boost::extents[Hydrogen_FEM::ELE_TOTAL][2][2]),
-            mat_A_glo_(Hydrogen_FEM::NODE_TOTAL, Hydrogen_FEM::NODE_TOTAL),
-            u_(Eigen::VectorXd::Zero(Hydrogen_FEM::NODE_TOTAL)),
-            vec_b_ele_(boost::extents[Hydrogen_FEM::ELE_TOTAL][2]),
-            vec_b_glo_(Eigen::VectorXd::Zero(Hydrogen_FEM::NODE_TOTAL))
+            mat_A_ele_(boost::extents[ELE_TOTAL][2][2]),
+            mat_A_glo_(NODE_TOTAL, NODE_TOTAL),
+            u_(Eigen::VectorXd::Zero(NODE_TOTAL)),
+            vec_b_ele_(boost::extents[ELE_TOTAL][2]),
+            vec_b_glo_(Eigen::VectorXd::Zero(NODE_TOTAL))
     {
         hfem_.do_run();
     }
@@ -53,7 +53,7 @@ namespace hydrogen_vh {
         // 全体行列と全体ベクトルを生成
         make_global_matrix_and_vector();
 
-        // 境界条件処理
+        // 境界条件処理を行う
         boundary_conditions();
 
         // 連立方程式を解く
@@ -68,8 +68,8 @@ namespace hydrogen_vh {
     {
         std::unique_ptr<FILE, decltype(&std::fclose)> fp(std::fopen(Hydrogen_Vh::RESULT_FILENAME, "w"), std::fclose);
 
-        auto const dr = (Hydrogen_FEM::R_MAX - Hydrogen_FEM::R_MIN) / static_cast<double>(Hydrogen_FEM::ELE_TOTAL);
-        for (auto i = 1; i <= Hydrogen_FEM::ELE_TOTAL; i++) {
+        auto const dr = (Hydrogen_FEM::R_MAX - Hydrogen_FEM::R_MIN) / static_cast<double>(ELE_TOTAL);
+        for (auto i = 1; i <= ELE_TOTAL; i++) {
             auto const r = static_cast<double>(i) * dr;
             // 厳密な結果と比較
             std::fprintf(fp.get(), "%.14f, %.14f, %.14f\n", r, u_[i] / r, - (1.0 + 1.0 / r) * exp(-2.0 * r) + 1.0 / r);
@@ -90,17 +90,17 @@ namespace hydrogen_vh {
         mat_A_glo_.coeffRef(1, 0) = 0.0;
 
         auto const b = 1.0;
-        mat_A_glo_.coeffRef(Hydrogen_FEM::NODE_TOTAL - 1, Hydrogen_FEM::NODE_TOTAL - 1) = 1.0;
-        vec_b_glo_(Hydrogen_FEM::NODE_TOTAL - 1) = b;
-        vec_b_glo_(Hydrogen_FEM::NODE_TOTAL - 2) -= b * mat_A_glo_.coeff(Hydrogen_FEM::NODE_TOTAL - 2, Hydrogen_FEM::NODE_TOTAL - 1);
-        mat_A_glo_.coeffRef(Hydrogen_FEM::NODE_TOTAL - 2, Hydrogen_FEM::NODE_TOTAL - 1) = 0.0;
-        mat_A_glo_.coeffRef(Hydrogen_FEM::NODE_TOTAL - 1, Hydrogen_FEM::NODE_TOTAL - 2) = 0.0;
+        mat_A_glo_.coeffRef(NODE_TOTAL - 1, NODE_TOTAL - 1) = 1.0;
+        vec_b_glo_(NODE_TOTAL - 1) = b;
+        vec_b_glo_(NODE_TOTAL - 2) -= b * mat_A_glo_.coeff(NODE_TOTAL - 2, NODE_TOTAL - 1);
+        mat_A_glo_.coeffRef(NODE_TOTAL - 2, NODE_TOTAL - 1) = 0.0;
+        mat_A_glo_.coeffRef(NODE_TOTAL - 1, NODE_TOTAL - 2) = 0.0;
     }
 
     void Hydrogen_Vh::make_element_matrix_and_vector()
     {
         // 要素行列とLocal節点ベクトルの各成分を計算
-        for (auto e = 0; e < Hydrogen_FEM::ELE_TOTAL; e++) {
+        for (auto e = 0; e < ELE_TOTAL; e++) {
             for (auto i = 0; i < 2; i++) {
                 for (auto j = 0; j < 2; j++) {
                     mat_A_ele_[e][i][j] = (std::pow(-1, i + 1) * std::pow((-1), (j + 1)) / hfem_.Length()[e]);
@@ -132,7 +132,7 @@ namespace hydrogen_vh {
     void Hydrogen_Vh::make_global_matrix_and_vector()
     {
         // 全体行列と全体ベクトルを生成
-        for (auto e = 0; e < Hydrogen_FEM::ELE_TOTAL; e++) {
+        for (auto e = 0; e < ELE_TOTAL; e++) {
             for (auto i = 0; i < 2; i++) {
                 for (auto j = 0; j < 2; j++) {
                     mat_A_glo_.coeffRef(hfem_.Node_num_seg()[e][i], hfem_.Node_num_seg()[e][j]) = mat_A_glo_.coeff(hfem_.Node_num_seg()[e][i], hfem_.Node_num_seg()[e][j]) + mat_A_ele_[e][i][j];

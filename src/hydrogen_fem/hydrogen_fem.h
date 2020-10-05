@@ -61,6 +61,12 @@ namespace hydrogen_fem {
         // #region privateメンバ関数
 
     private:
+        //! A private member function.
+        /*!
+            境界条件を設定する
+        */
+        void boundary_conditions();
+
         //! A private member function (const).
         /*!
             左辺の要素行列を計算する
