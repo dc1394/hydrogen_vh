@@ -105,18 +105,6 @@ private:
         */
         static auto constexpr INTEGTABLENUM = 100;
 
-        //! A private member variable (constant expression).
-        /*!
-            節点数
-        */
-        static auto constexpr NODE_TOTAL = hydrogen_fem::Hydrogen_FEM::NODE_TOTAL - 1;
-
-        //! A private member variable (constant expression).
-        /*!
-            要素数
-        */
-        static auto constexpr ELE_TOTAL = NODE_TOTAL - 1;
-
         //! A private member variable.
         /*!
             Gauss-Legendre積分用オブジェクト

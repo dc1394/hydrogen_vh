@@ -53,6 +53,9 @@ namespace hydrogen_fem {
         // 固有ベクトル（波動関数）を取得
         phi_ = es.eigenvectors().col(0);
 
+        // 固有ベクトル（波動関数）のN要素目を追加
+        phi_.resize(NODE_TOTAL);
+
         // 固有ベクトル（波動関数）を規格化
         normalize();
     }
