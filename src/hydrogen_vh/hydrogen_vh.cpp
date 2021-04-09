@@ -108,13 +108,13 @@ namespace hydrogen_vh {
                 switch (i)
                 {
                 case 0:
-                    vec_b_ele_[e][i] = -gl_.qgauss([this, e](double r) { return -r * hfem_.rho(r) * (hfem_.Node_r_ele()[e][1] - r) / hfem_.Length()[e]; },
+                    vec_b_ele_[e][i] = gl_.qgauss([this, e](double r) { return r * hfem_.rho(r) * (hfem_.Node_r_ele()[e][1] - r) / hfem_.Length()[e]; },
                         hfem_.Node_r_ele()[e][0],
                         hfem_.Node_r_ele()[e][1]);
                     break;
 
                 case 1:
-                    vec_b_ele_[e][i] = -gl_.qgauss([this, e](double r) { return -r * hfem_.rho(r) * (r - hfem_.Node_r_ele()[e][0]) / hfem_.Length()[e]; },
+                    vec_b_ele_[e][i] = gl_.qgauss([this, e](double r) { return r * hfem_.rho(r) * (r - hfem_.Node_r_ele()[e][0]) / hfem_.Length()[e]; },
                         hfem_.Node_r_ele()[e][0],
                         hfem_.Node_r_ele()[e][1]);
 
